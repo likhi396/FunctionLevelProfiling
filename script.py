@@ -1,132 +1,119 @@
 import os;
 import re;
 
-directory1 = os.listdir(r"C:/Users/srilikhi/likhitha/Final/inputFolderName/")
-directory2='C:/Users/srilikhi/likhitha/Final/outputFolderName/'
+directory1 = os.listdir(r"C:/Users/srilikhi/likhitha/Final/bbb/")
 
-il='.*inline.*\(.*|^AAEU_PROCESS.*'
-sp='^\/.*\/$'
-pattern1 = '^(?!\s*$|\s|\#|\*|\{|\}|\/).*\(.*$'
-pattern2 = '^(?!\#|\*|\{|\}|\/).*\).*$' 
-pattern3='.*\;$'
-pattern4='^\{'
-pattern5='^\s*return.*\;$|^\s*return\;$|^\s*return\s\.*$|^\s*return\s.*'
-pattern6='^\}|^\}\s\/.*\/$|^\}\/.*\/$'
-pattern7='.*\);$'
-pattern8='\n'
-pattern9='.*\/$'
-p10='.*PRIVATE FUNCTION.*'
-p11='\s.*if.*\(|.*else.*'
-p12='\)$'
-p13='.*\{$'
-p14='.*\{$'
+directory2='C:/Users/srilikhi/likhitha/Final/outbb/'
+#To Overwrite a folder
+if not os.path.exists(directory2):
+    os.mkdir(directory2)
 
 
-flag=0
-flag1=0
-flagp=0
-flag3=0
-flag5=0
+inlineId='.*inline.*\(.*|^AAEU_PROCESS.*'
+commentId='^\/.*\/$'
+funId1 = '^(?!\s*$|\s|\#|\*|\{|\}|\/).*\(.*$'
+funId2 = '^(?!\#|\*|\{|\}|\/).*\).*$' 
+endwithsemicolon='.*\;$'
+foundfun='^\{'
+returnId='^\s*return.*\;$|^\s*return\;$|^\s*return\s\.*$|^\s*return\s.*'
+spaceId='^\}|^\}\s\/.*\/$|^\}\/.*\/$'
+endwithsemiId='.*\);$'
+newlineId='\n'
+endComment='.*\/$'
+pvtFuncId='.*PRIVATE FUNCTION.*'
 
-store2=''
-store1=''
+flagEnd=0
+flagReturn=0
+flagFun=0
+flagStartTick=0
 
-def fun():
-    for i in directory1:
-        if i.endswith(".c"):
+
+storeFName=''
+storeFname=''
+
+#Creates Text cfile to include enum and struct profiling typedefs 
+def textFile():
+    for cfile in directory1:
+        if cfile.endswith(".c"):
         
-            with open(i) as f:
-                #d=i[0]
-                t=i.replace(".c",".txt")
-                fp=directory2+t
-                myfile=open(fp,'w')
+            with open(cfile) as file:
+                #Creating a text file with the same name as c cfile 
+                t=cfile.replace(".c",".txt")
+                path=directory2+t
+                myfile=open(path,'w')
                 
                 myfile.write('typedef enum {\n')
                 
-                
-                for line in f:
-                    rli=re.match(il,line)
+                for line in file:
+                    resInline=re.match(inlineId,line)
                    
-                    result1=re.match(pattern1,line)
-                    result2=re.match(pattern2,line)
-                    result3=re.match(pattern3,line)
-                    r7=re.match(pattern7,line)
+                    resFunId1=re.match(funId1,line)
+                    resFunId2=re.match(funId2,line)
+                    resEndwithSem=re.match(endwithsemicolon,line)
+                    resEndwithSemId=re.match(endwithsemiId,line)
                     
-                    if(rli):
+                    if(resInline):
                           pass
               
-                    elif (result1 and not result3):
-                        
-                   
-                   
-                        
-                        
-                        
-                        if not result2:
+                    elif (resFunId1 and not resEndwithSem):
+                        if not resFunId2:
                          
-                            global flagp
-                            flagp=1
-                            global store1
-                            k=line.split('(')[0]
-                            lk=k.split()[-1]
-                            if(re.search(r'^\*.*', lk)):
-                                lk=lk[1:]
-                            store1=lk.upper()
+                            global flagFun
+                            flagFun=1
+                            global storeFname
+                            func=line.split('(')[0]
+                            funcName=func.split()[-1]
+							#For Function that is is having parameters in multiple lines
+							#If any functionName starts like *FunctionName, then we need to ignore *,so search * and ignore it from FuncName and store in strore1
+                            if(re.search(r'^\*.*', funcName)):
+                                funcName=funcName[1:]
+                            storeFname=funcName.upper()
                             
-                            while not (result2):
+                            while not (resFunId2):
+                                line=file.readline()
                                 
-                                #myfile.write(line)
-                                
-                                line=f.readline()
-                                
-                                result2 = re.match(pattern2, line)
-                            r7=re.match(pattern7,line)
-                            if(r7):
-                                flagp=0
-                        
-                       # myfile.write(line)
-                        global store2
-                        p=line.split('(')[0]
-                        lp=p.split()[-1]
-                        if(re.search(r'^\*.*', lp)):
-                            lp=lp[1:]
-                        store2=lp.upper()
+                                resFunId2 = re.match(funId2, line)
+                            resEndwithSemId=re.match(endwithsemiId,line)
+							#If function Decalaration(ends with seicolon) , the we do not want to consider it sp make flagFun=0
+                            if(resEndwithSemId):
+                                flagFun=0
+                        #For function with parameters in a single line
+                        global storeFName
+                        fun=line.split('(')[0]
+                        funName=fun.split()[-1]
+                        if(re.search(r'^\*.*', funName)):
+                            funName=funName[1:]
+                        storeFName=funName.upper()
                         
                         
-                        line=f.readline()
-                        #myfile.write(line)
-                        rs=re.match(sp,line)
-                        r8=re.match(pattern8,line)
-                        if(r8):
-                            #pass
-                            line=f.readline()
-                            #myfile.write(line)
-                        if(rs):
-                            line=f.readline()
-                            #myfile.write(line)
-                            #line=f.readline()
-                            #myfile.write(line)
-                        res4=re.match(pattern4,line)
-                        global flag
-                        global flag1
-                        flag1=0
+                        line=file.readline()
                         
-                        if(res4):
+                        resComment=re.match(commentId,line)
+                        resNewLine=re.match(newlineId,line)
                         
-                            if (flagp and store1==lk):
-                                myfile.write(store1+'FN,\n')
-                            elif(flagp and store1!=lk):
-                                myfile.write(store1+',\n')
-                                flagp=0
-                            elif not flagp:
-                                if(store2==lp):
-                                    myfile.write(store2+'FN,\n')
+                        while(resNewLine):
+                            line=file.readline()
+                            resNewLine=re.match(newlineId,line)
+                            
+                        while(resComment):
+                            line=file.readline()
+                            resComment=re.match(commentId,line)
+                        
+                        resFoundFun=re.match(foundfun,line)
+                        
+                        if(resFoundFun):
+                            if (flagFun and storeFname==funcName):
+                                myfile.write(storeFname+'FN,\n')
+                            elif(flagFun and storeFname!=funcName):
+                                myfile.write(storeFname+',\n')
+                                flagFun=0
+                            elif not flagFun:
+							     #checking if the stored function name and the function Name are both in Both Upper case or not, If both are in Upper case ,then we cannot use same name so changing name of stored Function name by adding FN at the end of name
+                                if(storeFName==funName):
+                                    myfile.write(storeFName+'FN,\n')
                                 else:
-                                    myfile.write(store2+',\n')
-                                
-                            #myfile.write(line)
-                            #myfile.write(line+'\nStart\n')
-                            #myfile.write('\tTAaSysTime64 currentTick = AaTicks64Get();\n')
+                                    myfile.write(storeFName+',\n')
+                         
                     
                 myfile.write('MAX_FUN_NAME\n}eFunName;\n')
                 myfile.write('\ntypedef struct profiling\n{\n u32 count;\n u32 timeTaken;\n}tProfiling;\n')
@@ -134,231 +121,197 @@ def fun():
                 myfile.close()
                 
 def fun1():
-    for i in directory1:
-        if i.endswith(".c"):
-            print("InputFile is:"+i)
+    for cfile in directory1:
+        if cfile.endswith(".c"):
+            print("InputFile is:"+cfile)
         
-            with open(i) as f:
+            with open(cfile) as file:
                 
-                d=i
-                fp=directory2+d
-                myfile=open(fp,'w')
-                y=1
-                global flags
-                flags=0
-                flagk=0 
-                for line in f:
-                    rli=re.match(il,line)
-                    result1=re.match(pattern1,line)
-                    result2=re.match(pattern2,line)
-                    result3=re.match(pattern3,line)
-                    result4=re.match(pattern4,line)
-                    result5=re.match(pattern5,line)
-                    result6=re.match(pattern6,line)
-                    result9=re.match(pattern9,line)
-                    r10=re.match(p10,line) 
+                name=cfile
+                path=directory2+name
+                myfile=open(path,'w')
+                track=1
+                flagLint=0  #To avoid Indentation errors
+                for line in file:
+                    resInline=re.match(inlineId,line)
+                    resFunId1=re.match(funId1,line)
+                    resFunId2=re.match(funId2,line)
+                    resEndwithSem=re.match(endwithsemicolon,line)
+                    resFoundFun=re.match(foundfun,line)
+                    resReturn=re.match(returnId,line)
+                    resSpace=re.match(spaceId,line)
+                    resComment=re.match(endComment,line)
+                    resPvtFunc=re.match(pvtFuncId,line) 
                     
                     
-                    if(result9 and not flagk):
-                        flagk=1
+                    if(resComment and not flagLint):
+                        flagLint=1
                         myfile.write(line)
                         myfile.write('/*lint -e539 */\n/*lint -e525*/\n#include <IfAaSysTime.h>\n')
                        
                 
-                    elif(rli):
+                    elif(resInline):
                             myfile.write(line)
-                            while not (result6):
-                                
-                                line=f.readline()
+                            while not (resSpace):
+                                line=file.readline()
                                 myfile.write(line)
-                                result6=re.match(pattern6,line)
+                                resSpace=re.match(spaceId,line)
                     
-            
-                    
-                    elif(r10):
-                    
-                     
+                    elif(resPvtFunc):
                         myfile.write(line)
-                        if(y):
-                            y=0
-                        
-                            t=i.replace(".c",".txt")
-                            fpp=directory2+t
-                            myfile1=open(fpp,'r')
+                        if(track):
+                            track=0
+                            t=cfile.replace(".c",".txt")
+                            path=directory2+t
+                            myfile1=open(path,'r')
                             for line1 in myfile1:
                                 myfile.write(line1)
                                 
                     
-                    elif (result1 and not result3):
+                    elif (resFunId1 and not resEndwithSem):
                         
-                        if(y):
-                            y=0
-                        
-                            t=i.replace(".c",".txt")
-                            fpp=directory2+t
-                            myfile1=open(fpp,'r')
+                        if(track):
+                            track=0
+                            t=cfile.replace(".c",".txt")
+                            path=directory2+t
+                            myfile1=open(path,'r')
                             for line1 in myfile1:
                                 myfile.write(line1)
                         
-                        if not result2:
+                        if not resFunId2:
                          
-                            global flagp
-                            flagp=1
-                            global store1
-                            k=line.split('(')[0]
-                            lk=k.split()[-1]
-                            if(re.search(r'^\*.*', lk)):
-                                lk=lk[1:]
-                            
-                            store1=lk.upper()
-                            
-                            
-                            while not (result2):
-                                
+                            global flagFun
+                            flagFun=1
+                            global storeFname
+                            func=line.split('(')[0]
+                            funcName=func.split()[-1]
+                            if(re.search(r'^\*.*', funcName)):
+                                funcName=funcName[1:]
+                            storeFname=funcName.upper()
+                            while not (resFunId2):
                                 myfile.write(line)
-                                
-                                line=f.readline()
-                            
-                                result2 = re.match(pattern2, line)
-                            result7=re.match(pattern7,line)
-                            if(result7):
-                                flagp=0
+                                line=file.readline()
+                                resFunId2 = re.match(funId2, line)
+                            resEndwithSemId=re.match(endwithsemiId,line)
+                            if(resEndwithSemId):
+                                flagFun=0
                         
                         myfile.write(line)
-                        global store2
-                        p=line.split('(')[0]
-                        lp=p.split()[-1]
-                        if(re.search(r'^\*.*', lp)):
-                            lp=lp[1:]
-                        store2=lp.upper()
-                        
-                        
-                        line=f.readline()
-                        #myfile.write(line)
-                        rs=re.match(sp,line)
-                        result8=re.match(pattern8,line)
-                        while(result8):
-                            #pass
+                        global storeFName
+                        fun=line.split('(')[0]
+                        funName=fun.split()[-1]
+                        if(re.search(r'^\*.*', funName)):
+                            funName=funName[1:]
+                        storeFName=funName.upper()
+                        line=file.readline()
+                        resComment=re.match(commentId,line)
+                        resNewline=re.match(newlineId,line)
+						
+                        while(resNewline):
                             myfile.write(line)
-                            line=f.readline()
-                            result8=re.match(pattern8,line)
+                            line=file.readline()
+                            resNewline=re.match(newlineId,line)
                             
-                        while(rs):
+                        while(resComment):
                             myfile.write(line)
-                            line=f.readline()
-                            rs=re.match(sp,line)
+                            line=file.readline()
+                            resComment=re.match(commentId,line)
                         
-                        result4=re.match(pattern4,line)
-                        global flag
-                        global flag1
-                        flag=0
-                        flag1=0
-                    
+                        resFoundFun=re.match(foundfun,line)
+                        global flagEnd
+                        global flagReturn
                         
-                        if(result4):
+                        if(resFoundFun):
     
+                            flagEnd=1
+                            flagReturn=1
+                            global flagStartTick
                             
-                            flag=1
-                            flag1=1
-                            global flag3
-                            
-                            if flag3==0:
-                               flag3=1 
+                            if flagStartTick==0:
+                               flagStartTick=1 
                                
                             myfile.write(line)
-                            #myfile.write(line+'\nStart\n')
                             myfile.write('\tTAaSysTime64 currentTick = AaTicks64Get();\n')
                         
                         else:
                            myfile.write(line)
-                       
-                                    
-                    elif(result6 and flag):
-                        p="\t\tarrProfile["
+                                       
+                    elif(resSpace and flagEnd):
+                        fun="\t\tarrProfile["
                         r="].timeTaken += AaTicks64Get() - currentTick;"
                         s="].count++;"
                         
-                        
-                        if(flag1 and flagp):
-                            if(store1==lk):
-                                myfile.write(p+store1+'FN'+r+'\n')
-                                myfile.write(p+store1+'FN'+s+'\n')
-                                
-                                myfile.write(p+store1+'FN].count'+'='+p+store1+'FN].count;'+'\n')
+                        if(flagReturn and flagFun):
+                            if(storeFname==funcName):
+                                myfile.write(fun+storeFname+'FN'+r+'\n')
+                                myfile.write(fun+storeFname+'FN'+s+'\n')
+                                myfile.write(fun+storeFname+'FN].count'+'='+fun+storeFname+'FN].count;'+'\n')
                                 myfile.write(line+'\n')
-                                flagp=0
+                                flagFun=0
                             else:     
-                                myfile.write(p+store1+r+'\n')
-                                myfile.write(p+store1+s+'\n')
-                              
-                                myfile.write(p+store1+'].count'+'='+p+store1+'].count;'+'\n')
+                                myfile.write(fun+storeFname+r+'\n')
+                                myfile.write(fun+storeFname+s+'\n')
+                                myfile.write(fun+storeFname+'].count'+'='+fun+storeFname+'].count;'+'\n')
                                 myfile.write(line+'\n')
-                                flagp=0
-                        elif(flag1 and flagp==0):
-                            if(store2==lp):
-                                myfile.write(p+store2+'FN'+r+'\n')
-                                myfile.write(p+store2+'FN'+s+'\n')
-                                
-                                myfile.write(p+store2+'FN].count'+'='+p+store2+'FN].count;'+'\n')
+                                flagFun=0
+								
+                        elif(flagReturn and flagFun==0):
+                            if(storeFName==funName):
+                                myfile.write(fun+storeFName+'FN'+r+'\n')
+                                myfile.write(fun+storeFName+'FN'+s+'\n')
+                                myfile.write(fun+storeFName+'FN].count'+'='+fun+storeFName+'FN].count;'+'\n')
                                 myfile.write(line+'\n')
                             else:
-                                myfile.write(p+store2+r+'\n')
-                                myfile.write(p+store2+s+'\n')
-                                
-                                myfile.write(p+store2+'].count'+'='+p+store2+'].count;'+'\n')
+                                myfile.write(fun+storeFName+r+'\n')
+                                myfile.write(fun+storeFName+s+'\n')
+                                myfile.write(fun+storeFName+'].count'+'='+fun+storeFName+'].count;'+'\n')
                                 myfile.write(line+'\n')
                             
                         else:
                             myfile.write(line)
-                            flagp=0
+                            flagFun=0
                         
-                        flag=0
+                        flagEnd=0
                         
                     
-                    elif(result5 and flag):
-                        flag1=0
-                        p="\t\t\t\tarrProfile["
+                    elif(resReturn and flagEnd):
+                        flagReturn=0
+                        fun="\t\t\t\tarrProfile["
                         r="].timeTaken += AaTicks64Get() - currentTick;"
                         s="].count++;"
-                        if(flagp==1 and store1==lk):
-                                myfile.write(p+store1+'FN'+r+'\n')
-                                myfile.write(p+store1+'FN'+s+'\n')
-                               
-                                myfile.write(p+store1+'FN].count'+'='+p+store1+'FN].count;'+'\n')
+                        if(flagFun==1 and storeFname==funcName):
+                                myfile.write(fun+storeFname+'FN'+r+'\n')
+                                myfile.write(fun+storeFname+'FN'+s+'\n') 
+                                myfile.write(fun+storeFname+'FN].count'+'='+fun+storeFname+'FN].count;'+'\n')
                                 myfile.write(line+'\n')
-                                
-                        elif(flagp==1 and store2!=lk):
-                                myfile.write(p+store1+r+'\n')
-                                myfile.write(p+store1+s+'\n')
-                                
-                                myfile.write(p+store1+'].count'+'='+p+store1+'].count;'+'\n')
+                        elif(flagFun==1 and storeFName!=funcName):
+                                myfile.write(fun+storeFname+r+'\n')
+                                myfile.write(fun+storeFname+s+'\n')
+                                myfile.write(fun+storeFname+'].count'+'='+fun+storeFname+'].count;'+'\n')
                                 myfile.write(line+'\n')
-                                
-                        elif(flagp==0):
-                            if(store2==lp):
-                                myfile.write(p+store2+'FN'+r+'\n')
-                                myfile.write(p+store2+'FN'+s+'\n')
-                              
-                                myfile.write(p+store2+'FN].count'+'='+p+store2+'FN].count;'+'\n')
+                        
+                        elif(flagFun==0):
+                            if(storeFName==funName):
+                                myfile.write(fun+storeFName+'FN'+r+'\n')
+                                myfile.write(fun+storeFName+'FN'+s+'\n')
+                                myfile.write(fun+storeFName+'FN].count'+'='+fun+storeFName+'FN].count;'+'\n')
                                 myfile.write(line+'\n')
                             
                             else:    
-                                myfile.write(p+store2+r+'\n')
-                                myfile.write(p+store2+s+'\n')
-                                
-                                myfile.write(p+store2+'].count'+'='+p+store2+'].count;'+'\n')
+                                myfile.write(fun+storeFName+r+'\n')
+                                myfile.write(fun+storeFName+s+'\n')  
+                                myfile.write(fun+storeFName+'].count'+'='+fun+storeFName+'].count;'+'\n')
                                 myfile.write(line+'\n')
-                       
+                    
                     
                     else:
                         myfile.write(line)
-                        
                     
-                print(d+"\tFile created...Check the Output_Files folder!\n") 
+                print(name+"\tFile created...Check the Output_Files folder!\n") 
                 
             myfile.close()
 
-fun()
+textFile()
 fun1()
                         
                 
