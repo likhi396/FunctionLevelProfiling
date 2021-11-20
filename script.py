@@ -1,8 +1,8 @@
 import os;
 import re;
 
-directory1 = os.listdir(r"C:/Users/srilikhi/likhitha/Final/ccc/")
-directory2='C:/Users/srilikhi/likhitha/Final/outcc/'
+directory1 = os.listdir(r"C:/Users/srilikhi/likhitha/Final/inputFolderName/")
+directory2='C:/Users/srilikhi/likhitha/Final/outputFolderName/'
 
 il='.*inline.*\(.*|^AAEU_PROCESS.*'
 sp='^\/.*\/$'
